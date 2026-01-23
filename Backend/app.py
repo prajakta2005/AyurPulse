@@ -2,74 +2,62 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pickle
 import os
-from pymongo import MongoClient
-import certifi # Required for some SSL environments
+import pandas as pd
 
 app = Flask(__name__)
-CORS(app)
+CORS(app) # Fixes the "Failed to fetch" handshake
 
-# --- MongoDB Configuration ---
-# Replace the URI with your local or MongoDB Atlas connection string
-MONGO_URI = "mongodb://localhost:27017/" 
-client = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
-db = client['ayurpulse_db']
-patients_collection = db['patients']
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(BASE_DIR, 'dosha_model.pkl')
+encoder_path = os.path.join(BASE_DIR, 'label_encoders.pkl')
 
-# Load ML Model
-model_path = 'dosha_model.pkl'
 model = None
-if os.path.exists(model_path):
+label_encoders = None
+
+if os.path.exists(model_path) and os.path.exists(encoder_path):
     with open(model_path, 'rb') as f:
         model = pickle.load(f)
-
-@app.route('/', methods=['GET'])
-def home():
-    return jsonify({"status": "online", "message": "AyurPulse API with MongoDB"})
+    with open(encoder_path, 'rb') as f:
+        label_encoders = pickle.load(f)
+    print("✅ Model and Encoders loaded successfully!")
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
         data = request.json
-        if not data:
-            return jsonify({"error": "No data received"}), 400
-
-        # Use .get() with a default value of 0 to prevent crashes if a key is missing
-        features = [
-            int(data.get('body_frame', 0)),
-            int(data.get('appetite', 0)),
-            int(data.get('sleep_pattern', 0)),
-            int(data.get('stress_response', 0)),
-            int(data.get('skin_type', 0))
+        # This list must match your CSV columns exactly
+        feature_order = [
+            "Body Size", "Body Weight", "Height", "Bone Structure", "Complexion",
+            "General feel of skin", "Texture of Skin", "Hair Color", "Appearance of Hair",
+            "Shape of face", "Eyes", "Eyelashes", "Blinking of Eyes", "Cheeks", "Nose",
+            "Teeth and gums", "Lips", "Nails", "Appetite", "Liking tastes",
+            "Metabolism Type", "Climate Preference", "Stress Levels", "Sleep Patterns",
+            "Dietary Habits", "Physical Activity Level", "Water Intake", 
+            "Digestion Quality", "Skin Sensitivity"
         ]
-        
-        # Check if model is actually loaded
-        if model is None:
-             return jsonify({"error": "ML Model not loaded on server"}), 500
 
-        prediction = model.predict([features])
-        return jsonify({'dosha': str(prediction[0])})
+        processed_features = []
+        for feature in feature_order:
+            val = str(data.get(feature, "Medium"))
+            try:
+                encoded_val = label_encoders[feature].transform([val])[0]
+            except Exception as e:
+                print(f"⚠️ Mapping failed for {feature} with value {val}. Error: {e}")
+    # Fallback to the first known class for that feature
+                encoded_val = label_encoders[feature].transform([label_encoders[feature].classes_[0]])[0]
+            processed_features.append(encoded_val)
 
-    except Exception as e:
-        # This will print the EXACT error in your terminal so you can see it
-        print(f"Prediction Error: {e}")
-        return jsonify({"error": str(e)}), 500
-# --- NEW: Route to Save Full Patient Data ---
-@app.route('/save-patient', methods=['POST'])
-def save_patient():
-    try:
-        data = request.json
-        if not data:
-            return jsonify({"error": "No data provided"}), 400
+        if model:
+            feature_df = pd.DataFrame([processed_features], columns=feature_order)
+            prediction_id = model.predict(feature_df)[0]
+            # Convert numeric 0 to text "Vata"
+            predicted_name = label_encoders['Dosha'].inverse_transform([prediction_id])[0]
+            return jsonify({'dosha': str(predicted_name)})
         
-        # Insert into MongoDB
-        result = patients_collection.insert_one(data)
-        
-        return jsonify({
-            "message": "Patient data saved successfully!",
-            "id": str(result.inserted_id)
-        }), 201
+        return jsonify({"error": "Model not ready"}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # use_reloader=False stops the Windows WinError 10038
+    app.run(debug=True, port=5000, threaded=True, use_reloader=False)

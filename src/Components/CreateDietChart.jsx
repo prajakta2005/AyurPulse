@@ -5,14 +5,21 @@ import { useState } from "react"
 export default function CreateDietChart() {
   const [currentStep, setCurrentStep] = useState(1)
   const [showResult, setShowResult] = useState(false)
-  const [formData, setFormData] = useState({
-    name: "", age: "", gender: "", height: "", weight: "", activityLevel: "",
-    healthConditions: [], allergies: [], medications: "",
-    vataScore: 0, pittaScore: 0, kaphaScore: 0, dominantDosha: "",
-    dietType: "", foodPreferences: [], dislikedFoods: [], mealTiming: "",
-    cookingTime: "", budget: "",
-    healthGoals: [], weightGoal: "", timeframe: "",
-  })
+const [formData, setFormData] = useState({
+  name: "", age: "", gender: "", height: "", weight: "", activityLevel: "",
+  healthConditions: [], allergies: [], medications: "",
+  dominantDosha: "",
+  // ADD THESE MISSING KEYS TO MATCH YOUR PAYLOAD
+  bodySize: "Medium", bodyWeight: "Moderate - steady weight", heightAttr: "Average",
+  boneStructure: "Medium", complexion: "White, pale, tans easily",
+  skinFeel: "Smooth and warm, oily T-zone", skinTexture: "Oily",
+  faceShape: "Long, angular, thin", eyeType: "Medium-sized, penetrating, light-sensitive eyes",
+  appetite: "Strong, Unbearable", digestionQuality: "moderate", 
+  sleepPattern: "moderate", stressLevel: "moderate",
+  dietType: "", foodPreferences: [], dislikedFoods: [], mealTiming: "",
+  cookingTime: "", budget: "",
+  healthGoals: [], weightGoal: "", timeframe: "",
+})
 
   const doshaQuestions = [
     {
@@ -76,39 +83,65 @@ export default function CreateDietChart() {
   }
 
 const handlePredictDosha = async () => {
-    // Mapping logic to convert scores into ML features (0=Vata, 1=Pitta, 2=Kapha)
-    const payload = {
-      body_frame: formData.vataScore > 0 ? 0 : (formData.pittaScore > 0 ? 1 : 2), 
-      appetite: formData.pittaScore > 2 ? 1 : (formData.vataScore > 2 ? 0 : 2),
-      sleep_pattern: formData.kaphaScore > 2 ? 2 : (formData.pittaScore > 2 ? 1 : 0),
-      stress_response: formData.vataScore > 2 ? 0 : (formData.pittaScore > 2 ? 1 : 2),
-      skin_type: formData.vataScore > 2 ? 0 : (formData.pittaScore > 2 ? 1 : 2)
-      
-    };
-
-    console.log("Sending to Backend:", payload);
-    try {
-      const response = await fetch('http://localhost:5000/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`);
-      }
-
-      const result = await response.json();
-      
-      // Update state with prediction and show the result view
-      setFormData(prev => ({ ...prev, dominantDosha: result.dosha }));
-      setShowResult(true);
-    } catch (error) {
-      console.error("Connection error:", error);
-      alert("Error: Ensure your Flask server is running on port 5000.");
-    }
+  console.log("Predict button clicked!"); 
+  
+  // We MUST provide all keys that app.py expects in 'feature_order'
+  const payload = {
+    "Body Size": formData.bodySize || "Medium",
+    "Body Weight": formData.bodyWeight || "Moderate - steady weight",
+    "Height": formData.heightAttr || "Average",
+    "Bone Structure": formData.boneStructure || "Medium",
+    "Complexion": formData.complexion || "Fair",
+    "General feel of skin": formData.skinFeel || "Smooth",
+    "Texture of Skin": formData.skinTexture || "Normal",
+    "Hair Color": "Black", // Defaulting missing features
+    "Appearance of Hair": "Straight",
+    "Shape of face": formData.faceShape || "Oval",
+    "Eyes": formData.eyeType || "Medium",
+    "Eyelashes": "Normal",
+    "Blinking of Eyes": "Normal",
+    "Cheeks": "Normal",
+    "Nose": "Normal",
+    "Teeth and gums": "Normal",
+    "Lips": "Normal",
+    "Nails": "Normal",
+    "Appetite": formData.appetite || "Normal",
+    "Liking tastes": "Sweet",
+    "Metabolism Type": "Normal",
+    "Climate Preference": "Temperate",
+    "Stress Levels": formData.stressLevel || "Moderate",
+    "Sleep Patterns": formData.sleepPattern || "Normal",
+    "Dietary Habits": "Vegetarian",
+    "Physical Activity Level": "Moderate",
+    "Water Intake": "Normal",
+    "Digestion Quality": formData.digestionQuality || "Normal",
+    "Skin Sensitivity": "Low"
   };
 
+  try {
+    const response = await fetch('http://localhost:5000/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Server error");
+    }
+
+    console.log("Prediction from Backend:", result.dosha);
+
+    // Update state
+    setFormData(prev => ({ ...prev, dominantDosha: result.dosha }));
+    setShowResult(true); 
+
+  } catch (error) {
+    console.error("React Error:", error.message);
+    alert(`Prediction Error: ${error.message}`);
+  }
+};
   const nextStep = () => { if (currentStep < 5) setCurrentStep(currentStep + 1) }
   const prevStep = () => {
     if (showResult) setShowResult(false)
@@ -120,7 +153,7 @@ const handlePredictDosha = async () => {
     setCurrentStep(4)
   }
 
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
     try {
       const response = await fetch('http://localhost:5000/save-patient', {
         method: 'POST',
@@ -242,51 +275,145 @@ const handlePredictDosha = async () => {
               </div>
             </div>
           )}
+{currentStep === 3 && (
+  !showResult ? (
+    <div className="animate-fadeIn">
+      <h2 className="text-2xl font-bold text-green-800 mb-6 border-b pb-2">Step 3: Prakriti (Dosha) Assessment</h2>
+      
+      <div className="space-y-8">
+        {/* Physical Frame & Build */}
+        <div className="bg-green-50 p-6 rounded-xl border border-green-100">
+          <h3 className="text-lg font-semibold text-green-700 mb-4">Physical Frame & Build</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Body Size</label>
+              <select value={formData.bodySize} onChange={(e) => handleInputChange("bodySize", e.target.value)} className="p-2 border rounded w-full">
+                <option value="Slim">Slim</option>
+                <option value="Medium">Medium</option>
+                <option value="Large">Large</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Weight Tendency</label>
+              <select value={formData.bodyWeight} onChange={(e) => handleInputChange("bodyWeight", e.target.value)} className="p-2 border rounded w-full">
+                <option value="Low - difficulties in gaining weight">Low (Vata)</option>
+                <option value="Moderate - steady weight">Moderate (Pitta)</option>
+                <option value="Heavy - difficulties in losing weight">Heavy (Kapha)</option>
+              </select>
+            </div>
+          </div>
+        </div>
 
-          {currentStep === 3 && (
-            !showResult ? (
-              <div>
-                <h2 className="text-2xl font-semibold text-gray-800 mb-6">Ayurvedic Dosha Assessment</h2>
-                <div className="space-y-6">
-                  {doshaQuestions.map((q, index) => (
-                    <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                      <h3 className="font-medium text-gray-800 mb-3">{q.question}</h3>
-                      <div className="space-y-2">
-                        {q.options.map((option, optIndex) => (
-                          <label key={optIndex} className="flex items-center cursor-pointer">
-                            <input type="radio" name={`question-${index}`} onChange={() => handleDoshaAnswer(option)} className="mr-3 text-green-600 focus:ring-green-500" />
-                            <span className="text-gray-700">{option.text}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-10">
-                <div className="mb-6">
-                  <div className="inline-block p-4 rounded-full bg-green-100 text-green-600 mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-3xl font-bold text-gray-800">Assessment Complete!</h2>
-                  <p className="text-xl text-green-700 mt-2">Your Dominant Dosha is: <span className="font-extrabold">{formData.dominantDosha}</span></p>
-                </div>
-                <div className="bg-green-50 border border-green-200 rounded-xl p-6 max-w-lg mx-auto mb-8 text-left">
-                  <p className="text-gray-700 leading-relaxed">
-                    {formData.dominantDosha === "Vata" && "Vata reflects Space and Air. You benefit from warm, grounding, and nourishing foods."}
-                    {formData.dominantDosha === "Pitta" && "Pitta reflects Fire and Water. You benefit from cooling, refreshing, and moderately heavy foods."}
-                    {formData.dominantDosha === "Kapha" && "Kapha reflects Earth and Water. You benefit from light, stimulating, and warming foods."}
-                  </p>
-                </div>
-                <button onClick={handleCreateDietPlan} className="px-8 py-3 bg-green-600 text-white rounded-full font-bold shadow-lg hover:bg-green-700 transition-all transform hover:scale-105">Create Diet Plan →</button>
-              </div>
-            )
-          )}
+        {/* Skin, Hair & Face */}
+        <div className="bg-orange-50 p-6 rounded-xl border border-orange-100">
+          <h3 className="text-lg font-semibold text-orange-700 mb-4">Skin, Hair & Face</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Skin Texture & Feel</label>
+              <select value={formData.skinTexture} onChange={(e) => handleInputChange("skinTexture", e.target.value)} className="p-2 border rounded w-full">
+                <option value="Dry">Dry / Rough</option>
+                <option value="Oily">Oily / Smooth</option>
+                <option value="Normal">Normal</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Eye Appearance</label>
+              <select value={formData.eyeType} onChange={(e) => handleInputChange("eyeType", e.target.value)} className="p-2 border rounded w-full">
+                <option value="Small, dry, blinking">Small / Dry</option>
+                <option value="Medium, penetrating">Medium / Penetrating</option>
+                <option value="Large, calm, thick lashes">Large / Calm</option>
+              </select>
+            </div>
+          </div>
+        </div>
 
-          {currentStep === 4 && (
+        {/* Metabolism & Digestion */}
+        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
+          <h3 className="text-lg font-semibold text-blue-700 mb-4">Metabolism & Digestion</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Appetite Type</label>
+              <select value={formData.appetite} onChange={(e) => handleInputChange("appetite", e.target.value)} className="p-2 border rounded w-full">
+                <option value="Irregular">Irregular</option>
+                <option value="Strong, Unbearable">Strong / Sharp</option>
+                <option value="Low but steady">Slow / Low</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Digestion Quality</label>
+              <select value={formData.digestionQuality} onChange={(e) => handleInputChange("digestionQuality", e.target.value)} className="p-2 border rounded w-full">
+                <option value="Gassy/Bloated">Gassy / Bloated</option>
+                <option value="Acidic/Burning">Acidic / Burning</option>
+                <option value="Heavy/Slow">Heavy / Slow</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Behavioral & Lifestyle */}
+        <div className="bg-purple-50 p-6 rounded-xl border border-purple-100">
+          <h3 className="text-lg font-semibold text-purple-700 mb-4">Behavioral & Lifestyle</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sleep Patterns</label>
+              <select value={formData.sleepPattern} onChange={(e) => handleInputChange("sleepPattern", e.target.value)} className="p-2 border rounded w-full">
+                <option value="Light / Interrupted">Light / Interrupted</option>
+                <option value="Moderate / Sound">Moderate / Sound</option>
+                <option value="Deep / Long">Deep / Long</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Stress Response</label>
+              <select value={formData.stressLevel} onChange={(e) => handleInputChange("stressLevel", e.target.value)} className="p-2 border rounded w-full">
+                <option value="Anxiety / Worry">Anxiety / Worry</option>
+                <option value="Anger / Irritability">Anger / Irritability</option>
+                <option value="Withdrawal / Calm">Withdrawal / Calm</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8 flex justify-center">
+        <button 
+          onClick={handlePredictDosha} 
+          className="px-10 py-3 bg-blue-600 text-white rounded-full font-bold shadow-lg hover:bg-blue-700 transition-all transform hover:scale-105"
+        >
+          Predict Dosha
+        </button>
+      </div>
+    </div>
+  ) : (
+    /* RESULT VIEW - This remains the same as your code */
+    <div className="text-center py-10 animate-fadeIn">
+      <div className="inline-block p-4 rounded-full bg-green-100 text-green-600 mb-4">
+        <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <h2 className="text-3xl font-bold text-gray-800">Assessment Complete!</h2>
+      <p className="text-xl text-green-700 mt-2 uppercase font-black">
+        Predicted Prakriti: {formData.dominantDosha === "0" ? "VATA" : formData.dominantDosha}
+      </p>
+      
+      <div className="bg-green-50 p-6 rounded-xl mt-6 text-left border border-green-200 max-w-lg mx-auto">
+        <h4 className="font-bold text-green-800 mb-2">Ayurvedic Insight:</h4>
+        <p className="text-gray-700 leading-relaxed">
+          {(formData.dominantDosha === "0" || formData.dominantDosha?.toLowerCase().includes("vata")) && "• Vata (Air): Focus on warm, cooked, grounding foods like ghee and root vegetables. Avoid raw/cold foods."}
+          {formData.dominantDosha?.toLowerCase().includes("pitta") && "• Pitta (Fire): Focus on cooling, hydrating foods like cucumbers, melons, and coconut water."}
+          {formData.dominantDosha?.toLowerCase().includes("kapha") && "• Kapha (Earth): Focus on light, warm, and spicy foods to stimulate metabolism."}
+        </p>
+      </div>
+
+      <button 
+        onClick={() => { setShowResult(false); setCurrentStep(4); }} 
+        className="mt-8 px-10 py-3 bg-green-600 text-white rounded-full font-bold shadow-lg hover:bg-green-700"
+      >
+        Next: Dietary Preferences →
+      </button>
+    </div>
+  )
+)}       {currentStep === 4 && (
             <div>
               <h2 className="text-2xl font-semibold text-gray-800 mb-6">Dietary Preferences</h2>
               <div className="space-y-6">
