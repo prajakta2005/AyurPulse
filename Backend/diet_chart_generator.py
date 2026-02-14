@@ -1,4 +1,5 @@
 """
+diet_chart_generator.py -
 Ayurvedic Diet Chart Generator Module
 Uses Google Gemini API to generate personalized 7-day meal plans
 """
@@ -6,6 +7,7 @@ Uses Google Gemini API to generate personalized 7-day meal plans
 import google.generativeai as genai
 import json
 import os
+import re
 from datetime import datetime
 
 
@@ -114,39 +116,23 @@ class DietChartGenerator:
         avoid_str = ', '.join(avoid_list) if avoid_list else 'None'
         
         prompt = f"""
-You are an expert Ayurvedic nutritionist and dietitian with deep knowledge of traditional Indian medicine and modern nutrition science. Create a comprehensive, personalized 7-day diet chart based on the following client profile:
+You are an expert Ayurvedic nutritionist. Create a 7-day diet chart as PURE JSON with NO markdown formatting.
 
-**PERSONAL INFORMATION:**
+USER PROFILE:
 - Name: {profile['name']}
-- Age: {profile['age']} years
-- Gender: {profile['gender']}
-- Current Weight: {profile['weight']} kg
-- Height: {profile['height']} cm
-- Activity Level: {profile['activity_level']}
-
-**HEALTH PROFILE:**
-- Health Conditions: {health_conditions_str}
-- Food Allergies: {allergies_str}
-- Current Medications: {profile['medications'] if profile['medications'] else 'None'}
-
-**AYURVEDIC CONSTITUTION:**
-- Dominant Dosha: {profile['dosha']}
-
-**DIETARY PREFERENCES:**
+- Dosha: {profile['dosha']}
 - Diet Type: {profile['diet_type']}
-- Food Preferences: {food_preferences_str}
-- Foods to Avoid: {disliked_foods_str}
-- Meal Timing Preference: {profile['meal_timing']}
-- Available Cooking Time: {profile['cooking_time']}
-- Budget Range: {profile['budget']}
+- MUST AVOID: {avoid_str}
+- Health Goals: {health_goals_str}
+- Age: {profile['age']}, Weight: {profile['weight']}kg, Activity: {profile['activity_level']}
 
-**HEALTH & WELLNESS GOALS:**
-- Primary Goals: {health_goals_str}
-- Weight Goal: {profile['weight_goal']}
-- Timeframe: {profile['timeframe']}
+CRITICAL JSON RULES:
+1. Items array: Use ONLY simple food names - NO parentheses, NO measurements
+2. Measurements go in description field
+3. NO special characters or quotes inside strings
+4. Keep strings SHORT and SIMPLE
 
-**INSTRUCTIONS:**
-Create a detailed 7-day meal plan with the following structure. Return ONLY valid JSON without any markdown formatting, code blocks, or additional text:
+EXAMPLE (follow this EXACT format):
 
 {{
   "weeklyPlan": [
@@ -156,104 +142,97 @@ Create a detailed 7-day meal plan with the following structure. Return ONLY vali
       "meals": {{
         "earlyMorning": {{
           "time": "6:00 AM",
-          "items": ["Warm water with lemon", "Soaked almonds (4-5)"],
-          "description": "Start your day with hydration and light protein",
-          "calories": 150,
-          "ayurvedicBenefit": "Cleanses digestive system and balances {profile['dosha']}"
+          "items": ["Warm lemon water"],
+          "description": "Start your day with 1 glass warm water mixed with half lemon",
+          "calories": 10,
+          "ayurvedicBenefit": "Activates digestive fire and detoxifies body"
         }},
         "breakfast": {{
           "time": "8:00 AM",
-          "items": ["Oats porridge with dates", "Herbal tea"],
-          "description": "Warm, nourishing breakfast with natural sweetness",
+          "items": ["Oats porridge", "Dates", "Herbal tea"],
+          "description": "1 bowl oats cooked with 3-4 chopped dates and cup of ginger tea",
           "calories": 400,
-          "ayurvedicBenefit": "Grounding and provides sustained energy"
+          "ayurvedicBenefit": "Balances {profile['dosha']} dosha and provides sustained energy"
         }},
         "midMorning": {{
           "time": "11:00 AM",
-          "items": ["Fresh seasonal fruit"],
-          "description": "Light fruit snack for energy",
+          "items": ["Apple", "Almonds"],
+          "description": "1 medium apple with 5-6 soaked almonds",
           "calories": 150,
-          "ayurvedicBenefit": "Natural sugars for midday energy"
+          "ayurvedicBenefit": "Natural energy boost and healthy fats"
         }},
         "lunch": {{
           "time": "1:00 PM",
-          "items": ["Dal (lentils)", "Rice", "Mixed vegetable curry", "Salad", "Buttermilk"],
-          "description": "Complete balanced meal with protein, carbs, and vegetables",
+          "items": ["Dal", "Rice", "Vegetable curry", "Salad", "Buttermilk"],
+          "description": "1 bowl moong dal, 1 cup rice, mixed vegetable curry, cucumber salad, 1 glass buttermilk",
           "calories": 600,
-          "ayurvedicBenefit": "Main meal for optimal digestion during peak Agni"
+          "ayurvedicBenefit": "Main meal during peak digestive fire"
         }},
         "eveningSnack": {{
           "time": "5:00 PM",
           "items": ["Herbal tea", "Roasted chickpeas"],
-          "description": "Light protein-rich snack",
+          "description": "1 cup ginger-cardamom tea with handful of roasted chana",
           "calories": 200,
-          "ayurvedicBenefit": "Prevents evening hunger and stabilizes energy"
+          "ayurvedicBenefit": "Light protein to prevent overeating at dinner"
         }},
         "dinner": {{
           "time": "7:30 PM",
           "items": ["Khichdi", "Cucumber raita"],
-          "description": "Light, easily digestible meal",
-          "calories": 500,
-          "ayurvedicBenefit": "Easy to digest, promotes restful sleep"
+          "description": "1 bowl moong dal khichdi with cooling cucumber yogurt",
+          "calories": 450,
+          "ayurvedicBenefit": "Easy to digest for restful sleep"
         }},
         "beforeBed": {{
           "time": "9:30 PM",
-          "items": ["Warm turmeric milk (haldi doodh)"],
-          "description": "Traditional Ayurvedic night drink",
+          "items": ["Turmeric milk"],
+          "description": "1 glass warm milk with half teaspoon turmeric and honey",
           "calories": 100,
           "ayurvedicBenefit": "Promotes deep sleep and reduces inflammation"
         }}
       }},
-      "totalCalories": 2100,
-      "waterIntake": "2.5-3 liters throughout the day",
-      "specialNotes": "Start with gentle yoga or pranayama in the morning"
+      "totalCalories": 1910,
+      "waterIntake": "8-10 glasses throughout the day",
+      "specialNotes": "Start your day with light yoga or pranayama breathing"
     }}
   ],
   "doshaBalancingTips": [
-    "Specific tip for {profile['dosha']} dosha 1",
-    "Specific tip for {profile['dosha']} dosha 2",
-    "Specific tip for {profile['dosha']} dosha 3",
-    "Specific tip for {profile['dosha']} dosha 4"
+    "Eat warm and cooked foods to balance {profile['dosha']} dosha",
+    "Maintain regular meal times to strengthen digestive fire",
+    "Avoid ice-cold drinks especially with meals",
+    "Include warming spices like ginger and cumin in cooking"
   ],
   "lifestyleRecommendations": [
-    "Wake up before sunrise for better alignment with natural rhythms",
-    "Practice oil pulling (gandush) each morning",
-    "Regular meal times to strengthen digestive fire (Agni)"
+    "Wake up before sunrise ideally around 6 AM",
+    "Practice 10-15 minutes of pranayama breathing daily",
+    "Take a 15-minute walk after lunch for digestion",
+    "Go to sleep by 10 PM for optimal rest"
   ],
   "ayurvedicSupplements": [
     {{
       "name": "Triphala",
-      "benefit": "Gentle detoxification and digestive support",
-      "timing": "Before bed with warm water"
-    }},
-    {{
-      "name": "Ashwagandha",
-      "benefit": "Stress reduction and vitality",
-      "timing": "Morning with milk or water"
+      "benefit": "Supports healthy digestion and gentle detoxification",
+      "timing": "Take before bed with warm water"
     }}
   ],
   "importantReminders": [
-    "Eat mindfully without distractions",
-    "Chew food thoroughly for better digestion",
-    "Avoid cold drinks with meals"
+    "Eat mindfully without phone or TV distractions",
+    "Chew each bite thoroughly at least 20 times",
+    "Drink water between meals not during meals",
+    "Listen to your body hunger and fullness signals"
   ]
 }}
 
-**CRITICAL REQUIREMENTS:**
-1. All meals MUST be {profile['diet_type']} compatible - no exceptions
-2. STRICTLY AVOID these ingredients: {avoid_str}
-3. Focus on {profile['dosha']}-balancing foods, spices, and cooking methods
-4. Include authentic Indian cuisine options appropriate for {profile['budget']} budget
-5. All meals must be practical to prepare within {profile['cooking_time']} time
-6. Address health conditions: {health_conditions_str}
-7. Support primary goals: {health_goals_str}
-8. Ensure variety across all 7 days - no repetitive meals
-9. Include specific portion sizes (e.g., "1 cup rice", "2 chapatis")
-10. Use realistic calorie counts based on actual portion sizes
-11. Adjust total daily calories based on {profile['weight_goal']} goal
-12. Return ONLY the JSON object - no markdown, no backticks, no explanations
+STRICT REQUIREMENTS:
+1. ALL meals MUST be {profile['diet_type']} - NO exceptions
+2. NEVER include: {avoid_str}
+3. Generate 7 DIFFERENT days - vary the meals each day
+4. Put ALL measurements in description NOT in items
+5. Keep item names SIMPLE without numbers or parentheses
+6. Adjust calories based on goal: {profile['weight_goal']}
+7. Use {profile['dosha']}-balancing ingredients and spices
+8. Return ONLY the JSON object - absolutely NO markdown, NO backticks, NO ```json
 
-Generate the complete 7-day personalized plan now as pure JSON.
+Generate the complete 7-day plan now:
 """
         return prompt
     
@@ -268,7 +247,18 @@ Generate the complete 7-day personalized plan now as pure JSON.
             str: Raw response text from the API
         """
         try:
-            response = self.model.generate_content(prompt)
+            # Configure generation settings - using only supported parameters
+            generation_config = {
+                'temperature': 0.7,
+                'top_p': 0.95,
+                'top_k': 40,
+                'max_output_tokens': 8192,
+            }
+            
+            response = self.model.generate_content(
+                prompt,
+                generation_config=generation_config
+            )
             return response.text
         except Exception as e:
             raise Exception(f"Gemini API call failed: {str(e)}")
@@ -293,15 +283,19 @@ Generate the complete 7-day personalized plan now as pure JSON.
         if cleaned_text.startswith('```'):
             # Split by ``` and take the middle part
             parts = cleaned_text.split('```')
-            if len(parts) >= 2:
+            if len(parts) >= 3:
                 cleaned_text = parts[1]
                 # Remove 'json' language identifier if present
                 if cleaned_text.startswith('json'):
                     cleaned_text = cleaned_text[4:]
                 cleaned_text = cleaned_text.strip()
         
-        # Additional cleaning for common issues
-        cleaned_text = cleaned_text.replace('\n\n', '\n')  # Remove double newlines
+        # Additional cleaning
+        cleaned_text = cleaned_text.replace('\n\n', '\n')
+        
+        # Remove parentheses that might cause issues
+        # This preserves the text but removes problematic formatting
+        cleaned_text = re.sub(r'\(([^)]*)\)', r'\1', cleaned_text)
         
         try:
             diet_chart = json.loads(cleaned_text)
@@ -310,12 +304,27 @@ Generate the complete 7-day personalized plan now as pure JSON.
             self._validate_diet_chart(diet_chart)
             
             return diet_chart
+            
         except json.JSONDecodeError as e:
-            # Log the error for debugging
             print(f"JSON Parse Error: {e}")
-            print(f"First 500 chars of response: {cleaned_text[:500]}")
-            print(f"Last 500 chars of response: {cleaned_text[-500:]}")
-            raise
+            print(f"Error at position {e.pos}")
+            
+            # Show context around error
+            if e.pos > 100:
+                print(f"Context: ...{cleaned_text[e.pos-100:e.pos+100]}...")
+            else:
+                print(f"Start: {cleaned_text[:min(500, len(cleaned_text))]}")
+            
+            # Try additional cleaning
+            try:
+                # Remove control characters
+                cleaned_text = re.sub(r'[\x00-\x1F\x7F]', '', cleaned_text)
+                diet_chart = json.loads(cleaned_text)
+                self._validate_diet_chart(diet_chart)
+                return diet_chart
+            except:
+                # Re-raise original error
+                raise e
     
     def _validate_diet_chart(self, diet_chart):
         """
@@ -363,13 +372,13 @@ Generate the complete 7-day personalized plan now as pure JSON.
         
         # Build a simplified prompt for single day
         prompt = f"""
-Generate a single day ({day_number}) meal plan for a {profile['dosha']} dosha individual.
-Follow the same structure as a full week plan but only for one day.
+Generate a single day meal plan for a {profile['dosha']} dosha individual.
+Day number: {day_number}
 Diet type: {profile['diet_type']}
 Avoid: {', '.join(profile['allergies'] + profile['disliked_foods'])}
 Goals: {', '.join(profile['health_goals'])}
 
-Return JSON for just one day following the same meal structure (earlyMorning, breakfast, midMorning, lunch, eveningSnack, dinner, beforeBed).
+Return JSON for just one day with the same meal structure.
 """
         
         response = self._call_gemini_api(prompt)
@@ -391,37 +400,3 @@ def generate_diet_chart(user_data, api_key=None):
     """
     generator = DietChartGenerator(api_key=api_key)
     return generator.generate_diet_chart(user_data)
-
-
-# Example usage and testing
-if __name__ == "__main__":
-    # Example test data
-    test_data = {
-        'name': 'Priya Sharma',
-        'age': '28',
-        'gender': 'female',
-        'height': '165',
-        'weight': '58',
-        'activityLevel': 'moderate',
-        'healthConditions': ['None'],
-        'allergies': ['Nuts'],
-        'medications': '',
-        'dominantDosha': 'Vata',
-        'dietType': 'vegetarian',
-        'foodPreferences': ['Spicy Food', 'Cooked Foods'],
-        'dislikedFoods': ['Mushrooms'],
-        'mealTiming': 'regular',
-        'cookingTime': 'moderate',
-        'budget': 'medium',
-        'healthGoals': ['Better Digestion', 'Increased Energy'],
-        'weightGoal': 'maintain',
-        'timeframe': '3-months'
-    }
-    
-    try:
-        generator = DietChartGenerator()
-        result = generator.generate_diet_chart(test_data)
-        print("✅ Diet chart generated successfully!")
-        print(f"Generated {len(result['weeklyPlan'])} days of meals")
-    except Exception as e:
-        print(f"❌ Error: {e}")
