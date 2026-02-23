@@ -372,7 +372,7 @@ Generate the complete 7-day plan now:
         
         # Build a simplified prompt for single day
         prompt = f"""
-Generate a single day meal plan for a {profile['dosha']} dosha individual.
+Generate a single day indian meal plan for a {profile['dosha']} dosha individual.
 Day number: {day_number}
 Diet type: {profile['diet_type']}
 Avoid: {', '.join(profile['allergies'] + profile['disliked_foods'])}
