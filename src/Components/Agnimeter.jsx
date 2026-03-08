@@ -1,9 +1,50 @@
 "use client"
+import { useEffect, useState } from "react"
 
 export default function AgnimeterPage() {
+
+  const [progress, setProgress] = useState(50)
+  const [type, setType] = useState("Sama Agni")
+  const [color, setColor] = useState("#22c55e")
+
+  useEffect(() => {
+    const hour = new Date().getHours()
+
+    if (hour >= 6 && hour < 9) {
+      setProgress(30)
+      setType("Manda Agni")
+      setColor("#eab308")
+    }
+    else if (hour >= 9 && hour < 12) {
+      setProgress(70)
+      setType("Sama Agni")
+      setColor("#22c55e")
+    }
+    else if (hour >= 12 && hour < 14) {
+      setProgress(100)
+      setType("Tikshna Agni")
+      setColor("#ef4444")
+    }
+    else if (hour >= 14 && hour < 18) {
+      setProgress(50)
+      setType("Vishama Agni")
+      setColor("#3b82f6")
+    }
+    else {
+      setProgress(25)
+      setType("Manda Agni")
+      setColor("#a855f7")
+    }
+  }, [])
+
+  const radius = 80
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference - (progress / 100) * circumference
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-green-50">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
+
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-orange-800 mb-4">Agnimeter Guide</h1>
@@ -12,6 +53,40 @@ export default function AgnimeterPage() {
           </p>
         </div>
 
+        {/* 🔥 Agnimeter Circle */}
+        <div className="flex flex-col items-center mb-12">
+          <svg width="200" height="200">
+            <circle
+              cx="100"
+              cy="100"
+              r={radius}
+              stroke="#e5e7eb"
+              strokeWidth="12"
+              fill="none"
+            />
+
+            <circle
+              cx="100"
+              cy="100"
+              r={radius}
+              stroke={color}
+              strokeWidth="12"
+              fill="none"
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+              strokeLinecap="round"
+              style={{ transition: "stroke-dashoffset 1s ease" }}
+            />
+          </svg>
+
+          <div className="absolute text-center mt-16">
+            <p className="text-3xl">🔥</p>
+            <p className="font-semibold text-lg mt-2">{type}</p>
+            <p className="text-gray-600">{progress}%</p>
+          </div>
+        </div>
+
+        {/* What is Agnimeter Section */}
         {/* What is Agnimeter Section */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <h2 className="text-3xl font-bold text-orange-700 mb-6 border-b-2 border-orange-200 pb-3">

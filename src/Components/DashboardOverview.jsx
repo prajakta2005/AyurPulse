@@ -28,7 +28,7 @@ export default function DashboardOverview() {
           </span>
         </Link>
 
-        {/* New Patient */}
+        {/* New Patient
         <Link to="/add-patient">
           <button className="flex items-center gap-2 bg-cyan-600 text-white px-4 py-2 rounded-lg hover:bg-cyan-700 transition-colors">
             <svg
@@ -46,7 +46,7 @@ export default function DashboardOverview() {
             </svg>
             New Patient
           </button>
-        </Link>
+        </Link> */}
       </div>
     </div>
 
