@@ -9,6 +9,7 @@ import json
 from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
+from diet_chart_generator import DietChartGenerator
 
 # ------------------ near the top, after imports ------------------
 
@@ -39,7 +40,6 @@ except Exception as e:
     diet_generator = None
 
 # Import our custom diet chart generator
-from diet_chart_generator import DietChartGenerator
 
 app = Flask(__name__)
 CORS(app)
