@@ -119,7 +119,7 @@ const handlePredictDosha = async () => {
   };
 
   try {
-    const response = await fetch('http://localhost:5000/predict', {
+    const response = await fetch('https://ayurpulse-backend.onrender.com/predict', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -155,7 +155,7 @@ const handlePredictDosha = async () => {
 
 const handleSubmit = async () => {
     try {
-      const response = await fetch('http://localhost:5000/save-patient', {
+      const response = await fetch('https://ayurpulse-backend.onrender.com/save-patient', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
