@@ -357,7 +357,7 @@ if __name__ == '__main__':
     print(f"ML Model Status: {'✅ Loaded' if model else '❌ Not Loaded'}")
     print(f"Diet Generator Status: {'✅ Ready' if diet_generator else '❌ Not Ready'}")
     print("=" * 80)
-    print("\nStarting Flask server on http://localhost:5000")
+    print("\nStarting Flask server on https://ayurpulse-backend.onrender.com")
     print("Press CTRL+C to stop\n")
     
     app.run(debug=True, port=5000, threaded=True, use_reloader=False)
