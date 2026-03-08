@@ -25,6 +25,7 @@ try:
     # You can keep DietChartGenerator() if env var is set
     # or explicitly pass key during dev (comment out when done)
     diet_generator = DietChartGenerator(
+        api_key = os.getenv("GEMINI_API_KEY")
         # api_key="AIza..."   # ← uncomment only for quick testing
     )
     print("✅ Diet Chart Generator initialized successfully!")
