@@ -15,7 +15,7 @@ export default function DashboardOverview() {
       <div className="flex items-center gap-4">
         {/* Agnimeter */}
         <Link
-          to="/agnimeter"
+          to="agnimeter"
           className="group relative flex items-center"
         >
           <img
@@ -28,25 +28,7 @@ export default function DashboardOverview() {
           </span>
         </Link>
 
-        {/* New Patient
-        <Link to="/add-patient">
-          <button className="flex items-center gap-2 bg-cyan-600 text-white px-4 py-2 rounded-lg hover:bg-cyan-700 transition-colors">
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            New Patient
-          </button>
-        </Link> */}
+       
       </div>
     </div>
 
@@ -286,7 +268,7 @@ export default function DashboardOverview() {
 
   <div className="grid gap-6 md:grid-cols-3">
     {/* Add New Patient */}
-    <Link to="/add-patient" className="w-full">
+    <Link to="add-patient" className="w-full">
       <button className="h-28 w-full flex flex-col items-center justify-center gap-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:bg-indigo-50 transition-all">
         <svg
           className="h-8 w-8 text-indigo-600"
@@ -308,7 +290,7 @@ export default function DashboardOverview() {
     </Link>
 
     {/* Community Engagement */}
-    <Link to="/community" className="w-full">
+    <Link to="community" className="w-full">
       <button className="h-28 w-full flex flex-col items-center justify-center gap-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:bg-green-50 transition-all">
         <svg
           className="h-8 w-8 text-green-600"
@@ -330,7 +312,7 @@ export default function DashboardOverview() {
     </Link>
 
     {/* Browse Food Database */}
-    <Link to="/food-database" className="w-full">
+    <Link to="food-database" className="w-full">
       <button className="h-28 w-full flex flex-col items-center justify-center gap-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:bg-amber-50 transition-all">
         <svg
           className="h-8 w-8 text-amber-600"

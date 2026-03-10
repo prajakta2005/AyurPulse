@@ -87,9 +87,9 @@
 
       {/* Right Section - Add Patient Button */}
       <Link
-        to="/add-patient"
-        className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors"
-      >
+  to="/dashboard/add-patient"
+  className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors"
+>
         <svg
           className="h-4 w-4"
           fill="none"

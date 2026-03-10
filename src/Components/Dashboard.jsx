@@ -3,12 +3,11 @@
 import { useState } from "react"
 import { Link, useLocation, Outlet } from "react-router-dom";
 const navigation = [
-  { name: "Dashboard", href: "/", icon: "📊" },
-  { name: "Patients", href: "/patients", icon: "👥" },
-  { name: "Food Database", href: "/food-database", icon: "🗄️" },
-  { name: "Diet Charts", href: "/diet-charts", icon: "📋" },
-  { name: "Recipes", href: "/recipes", icon: "👨‍🍳" },
-
+  { name: "Dashboard", href: "/dashboard", icon: "📊" },
+  { name: "Patients", href: "/dashboard/patients", icon: "👥" },
+  { name: "Food Database", href: "/dashboard/food-database", icon: "🗄️" },
+  { name: "Diet Charts", href: "/dashboard/diet-charts", icon: "📋" },
+  { name: "Recipes", href: "/dashboard/recipes", icon: "👨‍🍳" },
 ]
 
 export default function DashboardLayout() {
@@ -169,7 +168,7 @@ function SidebarContent({ pathname }) {
               </div>
             </div>
 
-            <Link to="/patients" className="block mt-3 text-xs text-cyan-600 hover:text-cyan-500 font-medium">
+            <Link to="/dashboard/diet-charts" className="block mt-3 text-xs text-cyan-600 hover:text-cyan-500 font-medium">
               View all patients →
             </Link>
           </li>
@@ -269,7 +268,7 @@ function SidebarContent({ pathname }) {
               </div>
             </div>
 
-            <Link to="/diet-charts" className="block mt-3 text-xs text-cyan-600 hover:text-cyan-500 font-medium">
+            <Link to="/dashboard/diet-charts" className="block mt-3 text-xs text-cyan-600 hover:text-cyan-500 font-medium">
               View all diet charts →
             </Link>
           </li>

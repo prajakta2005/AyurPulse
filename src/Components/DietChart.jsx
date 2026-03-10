@@ -278,7 +278,7 @@ export default function DietChartsView() {
           </div>
          
 
-<Link to="/diet-charts/create">Create New Chart</Link>
+<Link to="diet-charts/create">Create New Chart</Link>
 
             <Button className="gap-2 text-base px-8">
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -26,7 +26,7 @@ function App() {
 
         <Route path="/signup" element={<Signup />} />
 
-        {/* Dashboard */}
+        {/* Dashboard Layout */}
         <Route path="/dashboard" element={<Dashboard />}>
           <Route index element={<DashboardOverview />} />
           <Route path="patients" element={<Patient />} />
