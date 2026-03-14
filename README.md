@@ -176,7 +176,7 @@ ayurpulse/
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/ayurpulse.git
+git clone https://github.com/prajakta2005/AyurPulse.git
 cd ayurpulse/server
 
 # Create a virtual environment
@@ -258,8 +258,8 @@ AyurPulse uses **GitHub Actions** for continuous integration and deployment.
 
 | Service | Platform | URL |
 |---|---|---|
-| Frontend | Vercel | `[https://ayurpulse.vercel.app](https://ayurpulse.vercel.app/)` |
-| Backend API | Render | `[https://ayurpulse-api.onrender.com](https://ayurpulse-backend.onrender.com/)` |
+| Frontend | Vercel | [https://ayurpulse.vercel.app](https://ayurpulse.vercel.app) |
+| Backend API | Render | [https://ayurpulse-backend.onrender.com/](https://ayurpulse-backend.onrender.com/) |
 
 ---
 
