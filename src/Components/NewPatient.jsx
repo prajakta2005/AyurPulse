@@ -720,7 +720,7 @@ export default function CreateDietChart() {
                         ? 'bg-gray-400 cursor-not-allowed'
                         : 'bg-orange-600 hover:bg-orange-700'
                       } text-white`}
-                  >
+                  > 
                     {isGenerating ? (
                       <span className="flex items-center gap-2">
                         <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
