@@ -117,10 +117,10 @@ export default function CreateDietChart() {
 
     } catch (error) {
       console.error("Diet chart generation error:", error);
-      alert(`Failed: ${error.message}\n\nWould you like to use a basic template instead?`);
-      if (window.confirm("Use fallback template?")) {
+      // alert(`Failed: ${error.message}\n\nWould you like to use a basic template instead?`);
+      // if (window.confirm("Use fallback template?")) {
         generateFallbackDietChart();
-      }
+      // }
     } finally {
       setIsGenerating(false);
       setGenerationProgress("");
